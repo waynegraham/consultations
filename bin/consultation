@@ -1,0 +1,23 @@
+#! /usr/bin/env ruby
+
+require 'mechanize'
+require 'optparse'
+
+opt_parser = OptionParser.new do |opt|
+  opt.banner = "Usage: consultation"
+  opt.separator ""
+
+  opt.on("-h", "--help", "help") do
+    puts opt_parser
+  end
+end
+
+opt_parser.parse!
+
+date = DateTime.now
+
+print "Date of the instruction, session, or tour (#{date.strftime("%m-%d-%Y")}): "
+
+date = gets.chomp! unless gets.chomp!.length == 0
+
+puts date
