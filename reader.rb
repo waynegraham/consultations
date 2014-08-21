@@ -8,18 +8,6 @@ require 'pp'
 
 URL = "http://www.surveymonkey.com/s/UserEdFY15"
 
-
-class Survey
-  URL = "http://www.surveymonkey.com/s/UserEdFY15"
-
-
-  def initialize
-    @agent ||= Mechanize.new
-  end
-
-end
-
-
 def parse_date(date)
   parts = date.split('/')
   @month = "%02d" % parts[0]
@@ -35,13 +23,16 @@ end
 
 file = "consultations.csv"
 @csv_out = CSV.open('new.csv', 'wb')
+@csv_out << %w(date	uva_id instructor_ids unit schools session_type count course_number location notes processed) # add headers
 
 @agent ||= Mechanize.new
+@agent.user_agent_alias = "Mac Safari"
 
 CSV.foreach(file, :headers => true) do |row|
-  unless row['processed'] == true
+  if row['processed'].nil?
+    pp row['processed']
     parse_date(row['date'])
-    #explode_instructors(row['instructor_ids']) unless row['instructor_ids'] == nil
+    explode_instructors(row['instructor_ids']) unless row['instructor_ids'].nil?
 
     @agent.get(URL) do |page|
 
@@ -75,17 +66,30 @@ CSV.foreach(file, :headers => true) do |row|
         form["text_663167650_7654917885"]                = row['count']
         form["text_663167646_0"]                         = row['course'] unless row['course'].nil?
         form["text_663167652_0"]                         = row['notes']
-        #pp form
+
+        form.submit
+        #pp submission
         # Save the form
     end
 
-    # check for errors
 
-    # Update the CSV processed field
     row['processed'] = true
-    @csv_out << row
-  end
+
+   end
+
+   @csv_out << row
 end
 
-#File.rename("new.csv", "consultations.csv")
+# Hack; just rename the file
+File.rename("new.csv", "consultations.csv")
 
+
+class Survey
+  URL = "http://www.surveymonkey.com/s/UserEdFY15"
+
+
+  def initialize
+    @agent ||= Mechanize.new
+  end
+
+end
